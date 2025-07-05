@@ -1,14 +1,14 @@
-'use client'
+"use client";
 
-import { useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 export default function CalendarPage() {
-  const router = useRouter()
+  const router = useRouter();
 
   useEffect(() => {
-    router.push('/dashboard')
-  }, [router])
+    router.push("/dashboard");
+  }, [router]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -17,5 +17,5 @@ export default function CalendarPage() {
         <p className="text-gray-600">Redirecting to dashboard...</p>
       </div>
     </div>
-  )
-} 
+  );
+}

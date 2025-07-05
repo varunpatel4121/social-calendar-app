@@ -1,13 +1,13 @@
-'use client'
-import { useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+"use client";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 export default function IndexPage() {
-  const router = useRouter()
+  const router = useRouter();
 
   useEffect(() => {
-    router.push('/dashboard')
-  }, [router])
+    router.push("/dashboard");
+  }, [router]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -16,5 +16,5 @@ export default function IndexPage() {
         <p className="text-gray-600">Redirecting to dashboard...</p>
       </div>
     </div>
-  )
-} 
+  );
+}

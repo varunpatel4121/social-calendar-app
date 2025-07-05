@@ -1,27 +1,26 @@
-'use client'
-import { useAuth } from '@/lib/authHelpers'
-import SignInButton from '@/components/auth/SignInButton'
-import SignOutButton from '@/components/auth/SignOutButton'
-import Calendar from '@/components/calendar/Calendar'
+"use client";
+import { useAuth } from "@/lib/authHelpers";
+import SignInButton from "@/components/auth/SignInButton";
+import Header from "@/components/Header";
+import Calendar from "@/components/calendar/Calendar";
 
 export default function DashboardPage() {
-  const { user } = useAuth()
+  const { user } = useAuth();
 
   if (!user) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <SignInButton />
       </div>
-    )
+    );
   }
 
   return (
-    <div className="min-h-screen bg-white">
-      <div className="flex justify-between items-center px-4 py-3 border-b">
-        <h1 className="text-lg font-bold">📆 Welcome, {user.email}</h1>
-        <SignOutButton />
+    <div className="min-h-screen bg-gray-50">
+      <Header user={user} />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <Calendar userId={user.id} />
       </div>
-      <Calendar userId={user.id} />
     </div>
-  )
-} 
+  );
+}

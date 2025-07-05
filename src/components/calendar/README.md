@@ -17,20 +17,26 @@ calendar/
 ## Components
 
 ### Calendar
+
 The main calendar component that:
+
 - Manages navigation (month/year navigation, date picker)
 - Handles event selection and modal display
 - Renders the header with stats and navigation
 - Orchestrates all sub-components
 
 ### CalendarMonth
+
 Renders a single month including:
+
 - Month header with title
 - Day of week headers
 - Grid of CalendarDay components
 
 ### CalendarDay
+
 Renders an individual day cell with:
+
 - Date number display
 - Today highlighting (blue ring)
 - Event indicators (EventDot components)
@@ -38,7 +44,9 @@ Renders an individual day cell with:
 - Click handling for event selection
 
 ### EventDot
+
 Renders an event indicator with:
+
 - Event image as background
 - Overlay with event title
 - Hover effects
@@ -53,6 +61,7 @@ Renders an event indicator with:
 ## Future Integration
 
 The calendar is designed to easily swap mock data for Supabase:
+
 - Event data loading is isolated in `Calendar.tsx`
 - Event interfaces are defined in `mockEvents.ts`
 - Date utilities are reusable for any data source
@@ -60,7 +69,8 @@ The calendar is designed to easily swap mock data for Supabase:
 ## Styling
 
 All components use Tailwind CSS with:
+
 - Instagram-style modern design
 - Glass-morphism effects
 - Responsive layout
-- Smooth transitions and hover effects 
+- Smooth transitions and hover effects
