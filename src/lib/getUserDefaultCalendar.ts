@@ -1,14 +1,8 @@
 import { supabase } from './supabaseClient'
+import { generateSlugFromName, generateUniqueSlug } from './utils/slug'
+import { Calendar } from '@/types/calendar'
 
-export interface UserCalendar {
-  id: string
-  title: string
-  description?: string
-  is_default: boolean
-  is_public: boolean
-  public_id: string
-  created_at: string
-}
+export type UserCalendar = Calendar;
 
 export async function getUserDefaultCalendar(userId: string): Promise<UserCalendar> {
   if (!userId) {
@@ -34,6 +28,28 @@ export async function getUserDefaultCalendar(userId: string): Promise<UserCalend
     return existingCalendar
   }
 
+  // Get user info to generate slug
+  let userName = 'user'
+  try {
+    const { data: { user }, error } = await supabase.auth.getUser()
+    if (!error && user) {
+      const metadata = user.user_metadata || {}
+      userName = metadata.name || metadata.first_name || user.email?.split('@')[0] || 'user'
+    }
+  } catch (error) {
+    console.warn('Could not get user info for slug generation:', error)
+  }
+
+  // Generate unique slug (will handle 406 errors gracefully)
+  let uniqueSlug = 'my-calendar'
+  try {
+    const baseSlug = generateSlugFromName(userName, 'My Calendar')
+    uniqueSlug = await generateUniqueSlug(baseSlug)
+  } catch (error) {
+    console.warn('Could not generate unique slug, using fallback:', error)
+    uniqueSlug = `my-calendar-${Date.now()}`
+  }
+
   // No default calendar exists, create one
   const { data: newCalendar, error: createError } = await supabase
     .from('calendars')
@@ -43,7 +59,8 @@ export async function getUserDefaultCalendar(userId: string): Promise<UserCalend
       owner_id: userId,
       is_default: true,
       is_public: false,
-      public_id: crypto.randomUUID()
+      public_id: crypto.randomUUID(),
+      slug: uniqueSlug
     })
     .select()
     .single()

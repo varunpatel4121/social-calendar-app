@@ -1,4 +1,5 @@
 import { supabase, supabaseAdmin } from './supabaseClient'
+import { PublicEvent } from '@/types/calendar'
 
 export interface PublicCalendar {
   id: string
@@ -6,50 +7,82 @@ export interface PublicCalendar {
   description?: string
   is_public: boolean
   public_id: string
+  slug?: string
   created_at: string
   owner_name: string
   events: PublicEvent[]
 }
 
-export interface PublicEvent {
-  id: string
-  title: string
-  description?: string
-  start_time: string
-  end_time?: string
-  location?: string
-  color?: string
-  created_at: string
-}
-
-export async function fetchPublicCalendar(publicId: string): Promise<PublicCalendar> {
-  if (!publicId) {
-    throw new Error('Public ID is required')
+export async function fetchPublicCalendar(slugOrId: string): Promise<PublicCalendar> {
+  if (!slugOrId) {
+    throw new Error('Slug or ID is required')
   }
 
-  console.log('🔍 Fetching public calendar with ID:', publicId)
+  console.log('🔍 Fetching public calendar with slugOrId:', slugOrId)
 
-  // Fetch the calendar without owner relationship for now
-  const { data: calendar, error: calendarError } = await supabase
-    .from('calendars')
-    .select('*')
-    .eq('public_id', publicId)
-    .eq('is_public', true)
-    .single()
+  let calendar = null
 
-  console.log('📅 Calendar query result:', { calendar, calendarError })
+  // First, try to fetch by slug (only if it looks like a slug, not a UUID)
+  const isLikelySlug = /^[a-z0-9-]+$/.test(slugOrId) && !slugOrId.includes('-') || slugOrId.length < 36;
+  
+  if (isLikelySlug) {
+    try {
+      const { data: slugCalendar, error: slugError } = await supabase
+        .from('calendars')
+        .select('*')
+        .eq('slug', slugOrId)
+        .eq('is_public', true)
+        .single()
 
-  if (calendarError) {
-    console.error('❌ Calendar fetch error:', calendarError)
-    throw new Error(`Calendar not found or is private: ${calendarError.message}`)
+      if (slugCalendar) {
+        calendar = slugCalendar
+        console.log('✅ Calendar found by slug:', { id: calendar.id, title: calendar.title, slug: calendar.slug })
+      } else if (slugError && slugError.code !== 'PGRST116') {
+        if (slugError.code === '406') {
+          console.log('📝 Slug column not found, trying public_id...')
+        } else {
+          console.error('❌ Error fetching by slug:', slugError)
+          throw new Error(`Failed to fetch calendar: ${slugError.message}`)
+        }
+      }
+    } catch {
+      console.log('📝 Error with slug lookup, trying public_id...')
+    }
+  }
+
+  // If no calendar found by slug, try by public_id
+  if (!calendar) {
+    console.log('📝 No calendar found by slug, trying public_id...')
+    
+    const { data: idCalendar, error: idError } = await supabase
+      .from('calendars')
+      .select('*')
+      .eq('public_id', slugOrId)
+      .eq('is_public', true)
+      .single()
+
+    if (idCalendar) {
+      calendar = idCalendar
+      console.log('✅ Calendar found by public_id:', { id: calendar.id, title: calendar.title, public_id: calendar.public_id })
+    } else if (idError && idError.code !== 'PGRST116') {
+      // Real error occurred
+      console.error('❌ Error fetching by public_id:', idError)
+      throw new Error(`Failed to fetch calendar: ${idError.message}`)
+    }
   }
 
   if (!calendar) {
-    console.log('❌ No calendar found with public_id:', publicId)
+    console.log('❌ No calendar found with slug or public_id:', slugOrId)
     throw new Error('Calendar not found or is private')
   }
 
-  console.log('✅ Calendar found:', { id: calendar.id, title: calendar.title, is_public: calendar.is_public })
+  console.log('✅ Calendar found:', { 
+    id: calendar.id, 
+    title: calendar.title, 
+    is_public: calendar.is_public,
+    slug: calendar.slug,
+    public_id: calendar.public_id 
+  })
 
   // Fetch events for this calendar
   const { data: events, error: eventsError } = await supabase
@@ -95,6 +128,7 @@ export async function fetchPublicCalendar(publicId: string): Promise<PublicCalen
     description: calendar.description,
     is_public: calendar.is_public,
     public_id: calendar.public_id,
+    slug: calendar.slug,
     created_at: calendar.created_at,
     owner_name: ownerName,
     events: events || []
@@ -104,7 +138,8 @@ export async function fetchPublicCalendar(publicId: string): Promise<PublicCalen
     id: result.id, 
     title: result.title, 
     eventsCount: result.events.length,
-    owner_name: result.owner_name 
+    owner_name: result.owner_name,
+    slug: result.slug
   })
 
   return result

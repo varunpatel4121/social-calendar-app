@@ -20,6 +20,7 @@ CREATE TABLE IF NOT EXISTS public.calendars (
     is_default BOOLEAN DEFAULT false,
     is_public BOOLEAN DEFAULT false,
     public_id TEXT UNIQUE,
+    slug TEXT UNIQUE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -69,6 +70,7 @@ CREATE INDEX IF NOT EXISTS idx_events_owner_id ON public.events(owner_id);
 CREATE INDEX IF NOT EXISTS idx_events_date ON public.events(event_date);
 CREATE INDEX IF NOT EXISTS idx_calendars_owner_id ON public.calendars(owner_id);
 CREATE INDEX IF NOT EXISTS idx_calendars_public_id ON public.calendars(public_id);
+CREATE INDEX IF NOT EXISTS idx_calendars_slug ON public.calendars(slug);
 
 -- Create function to update updated_at timestamp
 CREATE OR REPLACE FUNCTION update_updated_at_column()
@@ -88,4 +90,13 @@ CREATE TRIGGER update_events_updated_at
 CREATE TRIGGER update_calendars_updated_at 
     BEFORE UPDATE ON public.calendars 
     FOR EACH ROW 
-    EXECUTE FUNCTION update_updated_at_column(); 
+    EXECUTE FUNCTION update_updated_at_column();
+
+-- Add slug column if it doesn't exist (for existing databases)
+DO $$ 
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                   WHERE table_name = 'calendars' AND column_name = 'slug') THEN
+        ALTER TABLE public.calendars ADD COLUMN slug TEXT UNIQUE;
+    END IF;
+END $$; 

@@ -3,9 +3,12 @@ import { useAuth } from "@/lib/authHelpers";
 import SignInButton from "@/components/auth/SignInButton";
 import Header from "@/components/Header";
 import Calendar from "@/components/calendar/Calendar";
+import CalendarSettingsModal from "@/components/modals/CalendarSettingsModal";
 import { User } from "@supabase/supabase-js";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { getCurrentMonth } from "@/lib/utils/date";
+import { getUserDefaultCalendar } from "@/lib/getUserDefaultCalendar";
+import { Calendar as CalendarType } from "@/types/calendar";
 
 export default function DashboardPage() {
   const { user } = useAuth();
@@ -13,6 +16,24 @@ export default function DashboardPage() {
   const [selectedCalendar, setSelectedCalendar] = useState("my-calendar");
   const [selectedFilter, setSelectedFilter] = useState("all");
   const [eventCount, setEventCount] = useState(0);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [userCalendar, setUserCalendar] = useState<CalendarType | null>(null);
+
+  // Fetch user's default calendar
+  useEffect(() => {
+    const fetchUserCalendar = async () => {
+      if (!user) return;
+      
+      try {
+        const calendar = await getUserDefaultCalendar(user.id);
+        setUserCalendar(calendar);
+      } catch (error) {
+        console.error('Error fetching user calendar:', error);
+      }
+    };
+
+    fetchUserCalendar();
+  }, [user]);
 
   const getPersonalizedLabel = (user: User | null) => {
     if (!user) return "Feed";
@@ -24,6 +45,13 @@ export default function DashboardPage() {
 
   const navigateToToday = () => {
     setCurrentViewMonth(getCurrentMonth());
+  };
+
+  const handleCalendarUpdate = () => {
+    // Refresh calendar data
+    if (user) {
+      getUserDefaultCalendar(user.id).then(setUserCalendar);
+    }
   };
 
   if (!user) {
@@ -48,6 +76,7 @@ export default function DashboardPage() {
         onFilterChange={setSelectedFilter}
         personalizedLabel={getPersonalizedLabel(user)}
         eventCount={eventCount}
+        onSettingsClick={() => setIsSettingsOpen(true)}
       />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Calendar 
@@ -59,6 +88,15 @@ export default function DashboardPage() {
           onMonthEventCountChange={setEventCount}
         />
       </div>
+
+      {/* Calendar Settings Modal */}
+      <CalendarSettingsModal
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+        calendar={userCalendar}
+        userId={user.id}
+        onUpdate={handleCalendarUpdate}
+      />
     </div>
   );
 }
