@@ -1,1 +1,26 @@
- 
+<svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="scal-gradient" x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#a78bfa" />
+      <stop offset="1" stop-color="#38bdf8" />
+    </linearGradient>
+    <filter id="shadow" x="-2" y="-2" width="44" height="44" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#000" flood-opacity="0.10"/>
+    </filter>
+  </defs>
+  <g filter="url(#shadow)">
+    <rect x="2" y="2" width="36" height="36" rx="12" fill="url(#scal-gradient)"/>
+    <!-- Calendar grid -->
+    <rect x="8" y="11" width="24" height="18" rx="4" fill="#fff"/>
+    <rect x="8" y="15" width="24" height="2" fill="#e0e7ff"/>
+    <rect x="12" y="19" width="4" height="4" rx="1.5" fill="#a78bfa"/>
+    <rect x="18" y="19" width="4" height="4" rx="1.5" fill="#a78bfa"/>
+    <rect x="24" y="19" width="4" height="4" rx="1.5" fill="#a78bfa"/>
+    <rect x="12" y="25" width="4" height="4" rx="1.5" fill="#bae6fd"/>
+    <rect x="18" y="25" width="4" height="4" rx="1.5" fill="#bae6fd"/>
+    <rect x="24" y="25" width="4" height="4" rx="1.5" fill="#bae6fd"/>
+    <!-- Chat bubble for social -->
+    <ellipse cx="30.5" cy="30.5" rx="4.5" ry="4.5" fill="#38bdf8"/>
+    <path d="M30.5 33.5c-1.933 0-3.5-1.343-3.5-3s1.567-3 3.5-3 3.5 1.343 3.5 3c0 .57-.19 1.1-.52 1.54.04.23.13.7.27 1.18.09.32-.23.6-.54.47-.44-.18-.93-.41-1.21-.55-.16.02-.33.03-.5.03z" fill="#fff"/>
+  </g>
+</svg> 

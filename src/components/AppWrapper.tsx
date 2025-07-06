@@ -11,10 +11,12 @@ export default function AppWrapper({ children }: AppWrapperProps) {
   const router = useRouter();
   const pathname = usePathname();
   const [isLoading, setIsLoading] = useState(true);
-  const [, setHasSession] = useState(false);
 
   useEffect(() => {
+    let timeoutId: NodeJS.Timeout;
+    
     const checkSession = async () => {
+      console.log("🔍 AppWrapper: Checking session for pathname:", pathname);
       try {
         const {
           data: { session },
@@ -22,35 +24,41 @@ export default function AppWrapper({ children }: AppWrapperProps) {
         } = await supabase.auth.getSession();
 
         if (error) {
-          console.error("Error checking session:", error);
+          console.error("❌ AppWrapper: Error checking session:", error);
           setIsLoading(false);
           return;
         }
 
+        console.log("🔍 AppWrapper: Session found:", !!session, "User:", session?.user?.email || "No user");
+
         if (session) {
-          setHasSession(true);
           // If user is authenticated and on a public route, redirect to dashboard
           if (
             pathname === "/" ||
             pathname === "/login" ||
             pathname === "/signin"
           ) {
+            console.log("🔍 AppWrapper: Redirecting authenticated user to dashboard");
             router.replace("/dashboard");
           }
         } else {
-          setHasSession(false);
           // If user is not authenticated and on a protected route, redirect to home
           if (
             pathname.startsWith("/dashboard") ||
             pathname.startsWith("/calendar")
           ) {
+            console.log("🔍 AppWrapper: Redirecting unauthenticated user to home");
             router.replace("/");
           }
         }
       } catch (error) {
-        console.error("Unexpected error checking session:", error);
+        console.error("❌ AppWrapper: Unexpected error checking session:", error);
       } finally {
-        setIsLoading(false);
+        // Add a small delay to prevent rapid state changes
+        timeoutId = setTimeout(() => {
+          setIsLoading(false);
+          console.log("🔍 AppWrapper: Session check complete, loading:", false);
+        }, 100);
       }
     };
 
@@ -60,17 +68,19 @@ export default function AppWrapper({ children }: AppWrapperProps) {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log("🔍 AppWrapper: Auth state change:", event, "User:", session?.user?.email || "No user");
+      
       if (event === "SIGNED_IN" && session) {
-        setHasSession(true);
         if (
           pathname === "/" ||
           pathname === "/login" ||
           pathname === "/signin"
         ) {
+          console.log("🔍 AppWrapper: User signed in, redirecting to dashboard");
           router.replace("/dashboard");
         }
       } else if (event === "SIGNED_OUT") {
-        setHasSession(false);
+        console.log("🔍 AppWrapper: User signed out, redirecting to home");
         if (
           pathname.startsWith("/dashboard") ||
           pathname.startsWith("/calendar")
@@ -80,11 +90,15 @@ export default function AppWrapper({ children }: AppWrapperProps) {
       }
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId);
+      subscription.unsubscribe();
+    };
   }, [router, pathname]);
 
   // Show loading screen while checking session
   if (isLoading) {
+    console.log("🔍 AppWrapper: Showing loading screen");
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
@@ -95,5 +109,6 @@ export default function AppWrapper({ children }: AppWrapperProps) {
     );
   }
 
+  console.log("🔍 AppWrapper: Rendering children");
   return <>{children}</>;
 }

@@ -119,20 +119,27 @@ export default function Header({
     calendars.find((cal) => cal.id === selectedCalendar) || calendars[0];
 
   return (
-    <header className="bg-gradient-to-r from-purple-600 to-blue-500 shadow-lg sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <header className="bg-gradient-to-r from-purple-600 to-blue-500 shadow-lg sticky top-0 z-50 relative">
+      {/* Debrief Brand Centerpiece - Floating over both header bars */}
+      <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
+        <h1 className="text-3xl md:text-4xl lg:text-5xl font-dancing-script font-semibold tracking-wider drop-shadow-[0_0_30px_rgba(255,165,0,0.6)] bg-gradient-to-r from-orange-300 via-orange-400 via-yellow-400 to-orange-500 bg-clip-text text-transparent transform -translate-y-2">
+          Debrief
+        </h1>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-20">
         {/* Single Row - Compact Layout */}
         <div className="flex items-center justify-between h-16">
           {/* Left Section - Logo and Personalized Content */}
           <div className="flex items-center space-x-8">
-            {/* Debrief Logo - Larger and more prominent */}
+            {/* Debrief Logo - Twice as large */}
             <div className="flex-shrink-0">
               <Image
                 src="/logo.svg"
                 alt="Debrief Logo"
-                width={120}
-                height={32}
-                className="h-8 w-auto"
+                width={240}
+                height={64}
+                className="h-16 w-auto"
                 priority
               />
             </div>
@@ -231,6 +238,16 @@ export default function Header({
               </button>
 
               {/* Dropdown Menu */}
+              {(isDropdownOpen || isCalendarDropdownOpen) && (
+                <div
+                  className="fixed inset-0 z-40"
+                  onClick={() => {
+                    setIsDropdownOpen(false);
+                    setIsCalendarDropdownOpen(false);
+                  }}
+                />
+              )}
+
               {isDropdownOpen && (
                 <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl border border-gray-200 py-1 z-50">
                   <div className="px-4 py-2 border-b border-gray-100">
@@ -337,7 +354,7 @@ export default function Header({
         )}
 
         {/* Desktop Navigation Controls - Below header */}
-        <div className="hidden md:flex items-center justify-between py-3 border-t border-white/20">
+        <div className="hidden md:flex items-center justify-between py-3">
           {/* Left - Event Count and Status */}
           <div className="flex items-center space-x-2">
             <span className="text-sm text-purple-100">{getEventCountText()} this month</span>
@@ -418,17 +435,6 @@ export default function Header({
           </div>
         </div>
       </div>
-
-      {/* Click outside to close dropdowns */}
-      {(isDropdownOpen || isCalendarDropdownOpen) && (
-        <div
-          className="fixed inset-0 z-40"
-          onClick={() => {
-            setIsDropdownOpen(false);
-            setIsCalendarDropdownOpen(false);
-          }}
-        />
-      )}
     </header>
   );
 }
