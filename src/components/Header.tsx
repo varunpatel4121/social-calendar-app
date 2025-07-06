@@ -71,6 +71,10 @@ export default function Header({
       .slice(0, 2);
   };
 
+  const getEventCountText = () => {
+    return eventCount === 1 ? "1 event" : `${eventCount} events`;
+  };
+
   const calendars = [
     { id: "my-calendar", name: "My Calendar", color: "bg-purple-500" },
     { id: "work", name: "Work", color: "bg-blue-500" },
@@ -118,17 +122,17 @@ export default function Header({
     <header className="bg-gradient-to-r from-purple-600 to-blue-500 shadow-lg sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Single Row - Compact Layout */}
-        <div className="flex items-center justify-between h-14">
+        <div className="flex items-center justify-between h-16">
           {/* Left Section - Logo and Personalized Content */}
-          <div className="flex items-center space-x-6">
-            {/* Debrief Logo - Smaller to fit reduced height */}
+          <div className="flex items-center space-x-8">
+            {/* Debrief Logo - Larger and more prominent */}
             <div className="flex-shrink-0">
               <Image
                 src="/logo.svg"
                 alt="Debrief Logo"
-                width={100}
-                height={26}
-                className="h-6 w-auto"
+                width={120}
+                height={32}
+                className="h-8 w-auto"
                 priority
               />
             </div>
@@ -137,9 +141,8 @@ export default function Header({
             <div className="hidden md:flex flex-col">
               {personalizedLabel && (
                 <div>
-                  <h3 className="text-sm font-semibold text-white leading-tight">{personalizedLabel}</h3>
-                  <span className="block text-xs font-bold text-purple-100 mt-0.5">{eventCount} events this month</span>
-                  <p className="text-xs text-purple-100 leading-tight">Past Moments, Future Memories</p>
+                  <h3 className="text-lg font-bold text-white leading-tight">{personalizedLabel}</h3>
+                  <p className="text-sm text-purple-100 leading-tight">Past Moments, Future Memories</p>
                 </div>
               )}
             </div>
@@ -261,9 +264,9 @@ export default function Header({
             {/* Personalized Content for Mobile */}
             {personalizedLabel && (
               <div className="mb-4">
-                <h3 className="text-sm font-semibold text-white">{personalizedLabel}</h3>
-                <span className="block text-xs font-bold text-purple-100 mt-0.5">{eventCount} events this month</span>
-                <p className="text-xs text-purple-100">Past Moments, Future Memories</p>
+                <h3 className="text-lg font-bold text-white">{personalizedLabel}</h3>
+                <p className="text-sm text-purple-100">Past Moments, Future Memories</p>
+                <span className="block text-xs text-purple-100 mt-1">{getEventCountText()} this month</span>
               </div>
             )}
 
@@ -337,6 +340,7 @@ export default function Header({
         <div className="hidden md:flex items-center justify-between py-3 border-t border-white/20">
           {/* Left - Event Count and Status */}
           <div className="flex items-center space-x-2">
+            <span className="text-sm text-purple-100">{getEventCountText()} this month</span>
             {isPublic && (
               <>
                 <span className="text-purple-200">•</span>

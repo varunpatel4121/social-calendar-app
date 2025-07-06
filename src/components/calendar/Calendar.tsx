@@ -124,20 +124,27 @@ export default function Calendar({
         
         {/* Calendar Grid with enhanced spacing */}
         <div className="relative space-y-16">
-          {months.map((month, index) => (
-            <div key={month.toISOString()} className="relative">
-              {/* Subtle divider between months (except first) */}
-              {index > 0 && (
-                <div className="absolute -top-8 left-0 right-0 h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent" />
-              )}
-              
-              <CalendarMonth
-                date={month}
-                onDayClick={handleDayClick}
-                events={events}
-              />
-            </div>
-          ))}
+          {months.map((month, index) => {
+            // Calculate event count for this specific month
+            const monthStr = month.toISOString().slice(0, 7); // 'YYYY-MM'
+            const monthEventCount = events.filter(e => e.date.startsWith(monthStr)).length;
+            
+            return (
+              <div key={month.toISOString()} className="relative">
+                {/* Subtle divider between months (except first) */}
+                {index > 0 && (
+                  <div className="absolute -top-8 left-0 right-0 h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent" />
+                )}
+                
+                <CalendarMonth
+                  date={month}
+                  onDayClick={handleDayClick}
+                  events={events}
+                  eventCount={monthEventCount}
+                />
+              </div>
+            );
+          })}
         </div>
       </div>
 
