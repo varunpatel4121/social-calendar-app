@@ -8,6 +8,7 @@ import CalendarControls from "./CalendarControls";
 import EventModal from "@/components/modals/EventModal";
 import EventCreateButton from "@/components/EventCreateButton";
 import { supabase } from "@/lib/supabaseClient";
+import { getUserDefaultCalendar, UserCalendar } from "@/lib/getUserDefaultCalendar";
 
 interface CalendarProps {
   userId: string;
@@ -26,6 +27,7 @@ export default function Calendar({
   const [events, setEvents] = useState<CalendarEvent[]>(propEvents || []);
   const [selectedCalendar, setSelectedCalendar] = useState("my-calendar");
   const [selectedFilter, setSelectedFilter] = useState("all");
+  const [userCalendar, setUserCalendar] = useState<UserCalendar | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Infinite scroll: for now, just show current + 11 future months, but logic is ready for extension
@@ -44,13 +46,38 @@ export default function Calendar({
     setCurrentViewMonth(getCurrentMonth());
   };
 
+  const handleShareSuccess = () => {
+    // Refresh calendar data to show updated public status
+    if (userId) {
+      getUserDefaultCalendar(userId).then(setUserCalendar).catch(console.error);
+    }
+  };
+
+  // Fetch user's default calendar
+  useEffect(() => {
+    const fetchUserCalendar = async () => {
+      try {
+        const calendar = await getUserDefaultCalendar(userId);
+        setUserCalendar(calendar);
+      } catch (error) {
+        console.error("Error fetching user calendar:", error);
+      }
+    };
+
+    if (userId) {
+      fetchUserCalendar();
+    }
+  }, [userId]);
+
   // Fetch events from Supabase
   useEffect(() => {
     const fetchEvents = async () => {
+      if (!userCalendar) return;
+
       const { data, error } = await supabase
         .from("events")
         .select("*")
-        .eq("created_by", userId);
+        .eq("calendar_id", userCalendar.id);
 
       if (error) {
         console.error("Error fetching events:", error);
@@ -71,10 +98,10 @@ export default function Calendar({
       setEvents(transformedEvents);
     };
 
-    if (userId) {
+    if (userCalendar) {
       fetchEvents();
     }
-  }, [userId]);
+  }, [userCalendar]);
 
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -99,6 +126,9 @@ export default function Calendar({
         onCalendarChange={setSelectedCalendar}
         selectedFilter={selectedFilter}
         onFilterChange={setSelectedFilter}
+        calendarId={userCalendar?.id}
+        isPublic={userCalendar?.is_public}
+        onShareSuccess={handleShareSuccess}
       />
 
       {/* Calendar Container */}

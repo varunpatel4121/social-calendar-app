@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { supabase } from "@/lib/supabaseClient";
+import { getUserDefaultCalendar } from "@/lib/getUserDefaultCalendar";
 
 interface EventCreateModalProps {
   isOpen: boolean;
@@ -32,6 +33,28 @@ export default function EventCreateModal({
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [toast, setToast] = useState<ToastMessage | null>(null);
+  const [calendarId, setCalendarId] = useState<string | null>(null);
+  const [isLoadingCalendar, setIsLoadingCalendar] = useState(false);
+
+  // Fetch user's default calendar when modal opens
+  useEffect(() => {
+    if (isOpen && userId) {
+      setIsLoadingCalendar(true);
+      getUserDefaultCalendar(userId)
+        .then((calendar) => {
+          setCalendarId(calendar.id);
+          setIsLoadingCalendar(false);
+        })
+        .catch((error) => {
+          console.error("Error fetching default calendar:", error);
+          setToast({
+            type: "error",
+            message: "Failed to load your calendar. Please try again.",
+          });
+          setIsLoadingCalendar(false);
+        });
+    }
+  }, [isOpen, userId]);
 
   // Reset form when modal opens/closes or selectedDate changes
   useEffect(() => {
@@ -45,6 +68,7 @@ export default function EventCreateModal({
           : format(new Date(), "yyyy-MM-dd"),
       });
       setToast(null);
+      setCalendarId(null);
     }
   }, [isOpen, selectedDate]);
 
@@ -60,6 +84,16 @@ export default function EventCreateModal({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Check if calendar ID has been loaded
+    if (!calendarId) {
+      setToast({
+        type: "error",
+        message: "No calendar found for this user.",
+      });
+      return;
+    }
+    
     setIsSubmitting(true);
 
     try {
@@ -73,7 +107,7 @@ export default function EventCreateModal({
             start_time: new Date(formData.date + "T00:00:00Z").toISOString(),
             end_time: new Date(formData.date + "T23:59:59Z").toISOString(),
             created_by: userId,
-            calendar_id: null,
+            calendar_id: calendarId,
           },
         ])
         .select();
@@ -305,13 +339,18 @@ export default function EventCreateModal({
               </button>
               <button
                 type="submit"
-                disabled={isSubmitting || !formData.title.trim()}
+                disabled={isSubmitting || isLoadingCalendar || !formData.title.trim() || !calendarId}
                 className="flex-1 px-4 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:from-blue-700 hover:to-purple-700 focus:ring-4 focus:ring-blue-500/30 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
               >
                 {isSubmitting ? (
                   <div className="flex items-center justify-center space-x-2">
                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                     <span>Creating...</span>
+                  </div>
+                ) : isLoadingCalendar ? (
+                  <div className="flex items-center justify-center space-x-2">
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    <span>Loading...</span>
                   </div>
                 ) : (
                   "Create Event"

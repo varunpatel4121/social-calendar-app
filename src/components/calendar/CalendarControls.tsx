@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { format, addMonths, subMonths } from "date-fns";
 import { getCurrentMonth, isPastMonth } from "@/lib/utils/date";
+import ShareCalendarButton from "@/components/ShareCalendarButton";
 
 interface CalendarControlsProps {
   currentViewMonth: Date;
@@ -14,6 +15,9 @@ interface CalendarControlsProps {
   onCalendarChange: (calendar: string) => void;
   selectedFilter: string;
   onFilterChange: (filter: string) => void;
+  calendarId?: string;
+  isPublic?: boolean;
+  onShareSuccess?: () => void;
 }
 
 export default function CalendarControls({
@@ -26,6 +30,9 @@ export default function CalendarControls({
   onCalendarChange,
   selectedFilter,
   onFilterChange,
+  calendarId,
+  isPublic = false,
+  onShareSuccess
 }: CalendarControlsProps) {
   const [isCalendarDropdownOpen, setIsCalendarDropdownOpen] = useState(false);
   const [datePickerValue, setDatePickerValue] = useState(
@@ -100,49 +107,72 @@ export default function CalendarControls({
           <div className="flex items-center space-x-2">
             <span className="text-purple-200">•</span>
             <span className="text-purple-100 text-sm">{eventCount} events</span>
+            {/* Public Status Badge */}
+            {isPublic && (
+              <>
+                <span className="text-purple-200">•</span>
+                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                  <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                  Public
+                </span>
+              </>
+            )}
           </div>
         </div>
 
-        {/* Calendar Dropdown */}
-        <div className="relative">
-          <button
-            onClick={() => setIsCalendarDropdownOpen(!isCalendarDropdownOpen)}
-            className="flex items-center space-x-2 bg-white/20 backdrop-blur-sm rounded-lg px-3 py-2 text-white hover:bg-white/30 transition-colors"
-          >
-            <div className={`w-3 h-3 rounded-full ${currentCalendar.color}`} />
-            <span className="text-sm font-medium">{currentCalendar.name}</span>
-            <svg
-              className={`w-4 h-4 transition-transform duration-200 ${isCalendarDropdownOpen ? "rotate-180" : ""}`}
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M19 9l-7 7-7-7"
-              />
-            </svg>
-          </button>
-
-          {isCalendarDropdownOpen && (
-            <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl border border-gray-200 py-1 z-50">
-              {calendars.map((calendar) => (
-                <button
-                  key={calendar.id}
-                  onClick={() => {
-                    onCalendarChange(calendar.id);
-                    setIsCalendarDropdownOpen(false);
-                  }}
-                  className="w-full flex items-center space-x-3 px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 transition-colors"
-                >
-                  <div className={`w-3 h-3 rounded-full ${calendar.color}`} />
-                  <span>{calendar.name}</span>
-                </button>
-              ))}
-            </div>
+        <div className="flex items-center space-x-3">
+          {/* Share Button */}
+          {calendarId && (
+            <ShareCalendarButton
+              calendarId={calendarId}
+              isPublic={isPublic}
+              onShareSuccess={onShareSuccess}
+            />
           )}
+          
+          {/* Calendar Dropdown */}
+          <div className="relative">
+            <button
+              onClick={() => setIsCalendarDropdownOpen(!isCalendarDropdownOpen)}
+              className="flex items-center space-x-2 bg-white/20 backdrop-blur-sm rounded-lg px-3 py-2 text-white hover:bg-white/30 transition-colors"
+            >
+              <div className={`w-3 h-3 rounded-full ${currentCalendar.color}`} />
+              <span className="text-sm font-medium">{currentCalendar.name}</span>
+              <svg
+                className={`w-4 h-4 transition-transform duration-200 ${isCalendarDropdownOpen ? "rotate-180" : ""}`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M19 9l-7 7-7-7"
+                />
+              </svg>
+            </button>
+
+            {isCalendarDropdownOpen && (
+              <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl border border-gray-200 py-1 z-50">
+                {calendars.map((calendar) => (
+                  <button
+                    key={calendar.id}
+                    onClick={() => {
+                      onCalendarChange(calendar.id);
+                      setIsCalendarDropdownOpen(false);
+                    }}
+                    className="w-full flex items-center space-x-3 px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                  >
+                    <div className={`w-3 h-3 rounded-full ${calendar.color}`} />
+                    <span>{calendar.name}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
