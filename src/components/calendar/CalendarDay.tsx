@@ -2,6 +2,7 @@
 
 import { CalendarDay as CalendarDayType } from "@/lib/utils/date";
 import { CalendarEvent } from "@/types/calendar";
+import { useState } from "react";
 
 interface CalendarDayProps {
   day: CalendarDayType;
@@ -14,6 +15,7 @@ export default function CalendarDay({
   onDayClick,
   events,
 }: CalendarDayProps) {
+  const [showTooltip, setShowTooltip] = useState(false);
   const dayEvents = events
     ? events.filter((e) => e.date === day.date.toISOString().split("T")[0])
     : [];
@@ -44,6 +46,8 @@ export default function CalendarDay({
         }
       `}
       onClick={handleClick}
+      onMouseEnter={() => setShowTooltip(true)}
+      onMouseLeave={() => setShowTooltip(false)}
       aria-current={day.isToday ? "date" : undefined}
     >
       {/* Today's Date - Bold Animated Blue Ring */}
@@ -55,13 +59,13 @@ export default function CalendarDay({
 
       {/* Event Day - Image Circle with Date Overlay */}
       {hasEvents && eventImage ? (
-        <div className="w-full h-full rounded-2xl overflow-hidden shadow-md ring-1 ring-gray-200/50">
+        <div className="w-full h-full rounded-2xl overflow-hidden shadow-lg ring-1 ring-gray-200/50 group-hover:shadow-xl group-hover:scale-105 transition-all duration-300">
           {/* Event Image Background */}
           <div className="relative w-full h-full">
             <img
               src={eventImage}
               alt={`Event on ${day.dayNumber}`}
-              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+              className="w-full h-full object-cover transition-all duration-300 group-hover:scale-105 group-hover:brightness-75"
               onError={(e) => {
                 const target = e.target as HTMLImageElement;
                 target.style.display = "none";
@@ -94,15 +98,20 @@ export default function CalendarDay({
               </div>
             )}
 
-            {/* Hover Overlay */}
-            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-200" />
+            {/* Hover Text Overlay */}
+            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300 flex items-end p-2 opacity-0 group-hover:opacity-100">
+              <div className="text-white text-xs font-medium">
+                <div className="font-semibold truncate">{dayEvents[0].title}</div>
+                <div className="text-white/80 text-xs">My Calendar</div>
+              </div>
+            </div>
           </div>
         </div>
       ) : (
         /* Regular Day - Simple Background */
         <div
           className={`
-          w-full h-full rounded-2xl p-1
+          w-full h-full rounded-2xl p-1 relative
           ${
             day.isToday
               ? "bg-gradient-to-br from-blue-50 to-blue-100"
@@ -130,12 +139,47 @@ export default function CalendarDay({
             {/* Hover Overlay */}
             <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors duration-200 rounded-xl" />
           </div>
+
+          {/* Add Event Button - Shows on hover for current month */}
+          {day.isCurrentMonth && (
+            <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-all duration-200 transform scale-75 group-hover:scale-100">
+              <div className="w-6 h-6 bg-purple-600 hover:bg-purple-700 rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-all duration-200 cursor-pointer">
+                <span className="text-white text-xs font-bold">+</span>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
       {/* Glow effect for today's date */}
       {day.isToday && (
         <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-blue-400/30 to-blue-600/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300 -z-10 blur-sm" />
+      )}
+
+      {/* Event Tooltip */}
+      {showTooltip && hasEvents && dayEvents.length > 0 && (
+        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 z-50">
+          <div className="bg-gray-900 text-white text-xs rounded-lg px-3 py-2 shadow-lg max-w-xs">
+            <div className="font-semibold mb-1">
+              {dayEvents[0].title}
+            </div>
+            {dayEvents[0].description && (
+              <div className="text-gray-300 text-xs">
+                {dayEvents[0].description.slice(0, 50)}
+                {dayEvents[0].description.length > 50 && "..."}
+              </div>
+            )}
+            <div className="text-purple-300 text-xs mt-1">
+              My Calendar
+            </div>
+            {dayEvents.length > 1 && (
+              <div className="text-purple-300 text-xs mt-1">
+                +{dayEvents.length - 1} more events
+              </div>
+            )}
+            <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+          </div>
+        </div>
       )}
     </div>
   );

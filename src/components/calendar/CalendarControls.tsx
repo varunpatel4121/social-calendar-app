@@ -18,6 +18,7 @@ interface CalendarControlsProps {
   calendarId?: string;
   isPublic?: boolean;
   onShareSuccess?: () => void;
+  personalizedLabel?: string;
 }
 
 export default function CalendarControls({
@@ -32,7 +33,8 @@ export default function CalendarControls({
   onFilterChange,
   calendarId,
   isPublic = false,
-  onShareSuccess
+  onShareSuccess,
+  personalizedLabel
 }: CalendarControlsProps) {
   const [isCalendarDropdownOpen, setIsCalendarDropdownOpen] = useState(false);
   const [datePickerValue, setDatePickerValue] = useState(
@@ -97,23 +99,25 @@ export default function CalendarControls({
     calendars.find((cal) => cal.id === selectedCalendar) || calendars[0];
 
   return (
-    <div className="bg-gradient-to-r from-purple-600 to-blue-500 rounded-xl shadow-lg p-6 mb-6">
-      {/* Top Row - Month/Year and Calendar Dropdown */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center space-x-4">
-          <h2 className="text-2xl font-bold text-white">
-            {format(currentViewMonth, "MMMM yyyy")}
-          </h2>
+    <div className="bg-gradient-to-r from-purple-600 to-blue-500 rounded-xl shadow-lg p-6 mb-4">
+      {/* Top Row - Personalized Label and Calendar Dropdown */}
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex flex-col">
+          {personalizedLabel && (
+            <div className="mb-2">
+              <h3 className="text-lg font-semibold text-white">{personalizedLabel}</h3>
+              <p className="text-sm text-purple-100">Past Moments, Future Memories</p>
+            </div>
+          )}
           <div className="flex items-center space-x-2">
-            <span className="text-purple-200">•</span>
             <span className="text-purple-100 text-sm">{eventCount} events</span>
             {/* Public Status Badge */}
             {isPublic && (
               <>
                 <span className="text-purple-200">•</span>
-                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-white/20 text-white border border-white/30">
                   <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z" clipRule="evenodd" />
                   </svg>
                   Public
                 </span>
@@ -176,21 +180,30 @@ export default function CalendarControls({
         </div>
       </div>
 
-      {/* Filter Pills */}
-      <div className="flex items-center space-x-2 mb-6">
-        {filters.map((filter) => (
-          <button
-            key={filter.id}
-            onClick={() => onFilterChange(filter.id)}
-            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-              selectedFilter === filter.id
-                ? "bg-white text-purple-600 shadow-sm"
-                : "bg-white/20 text-white hover:bg-white/30"
-            }`}
-          >
-            {filter.name}
-          </button>
-        ))}
+      {/* Month/Year and Filter Pills Row */}
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center space-x-4">
+          <h2 className="text-xl font-bold text-white">
+            {format(currentViewMonth, "MMMM yyyy")}
+          </h2>
+        </div>
+        
+        {/* Filter Pills - Grouped more tightly */}
+        <div className="flex items-center space-x-1">
+          {filters.map((filter) => (
+            <button
+              key={filter.id}
+              onClick={() => onFilterChange(filter.id)}
+              className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors border ${
+                selectedFilter === filter.id
+                  ? "bg-white text-purple-600 border-white shadow-sm"
+                  : "bg-transparent text-white border-white/30 hover:bg-white/20"
+              }`}
+            >
+              {filter.name}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Bottom Row - Navigation Controls */}

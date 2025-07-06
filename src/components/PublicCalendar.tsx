@@ -17,7 +17,7 @@ export default function PublicCalendar({
   events,
   calendarTitle,
   ownerName,
-  publicId,
+
 }: PublicCalendarProps) {
   const [currentViewMonth, setCurrentViewMonth] = useState(getCurrentMonth());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);

@@ -3,9 +3,11 @@ import { supabaseAdmin } from '@/lib/supabaseClient'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { userId: string } }
+  { params }: { params: Promise<{ userId: string }> }
 ) {
   try {
+    const { userId } = await params
+    
     if (!supabaseAdmin) {
       return NextResponse.json(
         { error: 'Admin client not available' },
@@ -14,7 +16,7 @@ export async function GET(
     }
     
     // Get user data from auth.users table
-    const { data: userData, error } = await supabaseAdmin.auth.admin.getUserById(params.userId)
+    const { data: userData, error } = await supabaseAdmin.auth.admin.getUserById(userId)
     
     if (error || !userData?.user) {
       return NextResponse.json(

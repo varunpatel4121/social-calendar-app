@@ -4,7 +4,6 @@ import { useState, useEffect, useRef } from "react";
 import { CalendarEvent } from "@/types/calendar";
 import { getMonthsAroundDate, getCurrentMonth } from "@/lib/utils/date";
 import CalendarMonth from "./CalendarMonth";
-import CalendarControls from "./CalendarControls";
 import EventModal from "@/components/modals/EventModal";
 import EventCreateButton from "@/components/EventCreateButton";
 import { supabase } from "@/lib/supabaseClient";
@@ -14,19 +13,25 @@ interface CalendarProps {
   userId: string;
   events?: CalendarEvent[];
   onEventClick?: (date: Date, events: CalendarEvent[]) => void;
+  personalizedLabel?: string;
+  currentViewMonth?: Date;
+  selectedCalendar?: string;
+  selectedFilter?: string;
+  onMonthEventCountChange?: (count: number) => void;
 }
 
 export default function Calendar({
   userId,
   events: propEvents,
   onEventClick,
+  currentViewMonth: propCurrentViewMonth,
+  onMonthEventCountChange,
 }: CalendarProps) {
-  const [currentViewMonth, setCurrentViewMonth] = useState(getCurrentMonth());
+  const currentViewMonth = propCurrentViewMonth || getCurrentMonth();
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedEvents, setSelectedEvents] = useState<CalendarEvent[]>([]);
   const [events, setEvents] = useState<CalendarEvent[]>(propEvents || []);
-  const [selectedCalendar, setSelectedCalendar] = useState("my-calendar");
-  const [selectedFilter, setSelectedFilter] = useState("all");
+
   const [userCalendar, setUserCalendar] = useState<UserCalendar | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -40,17 +45,6 @@ export default function Calendar({
       console.log("Events for", date.toDateString(), ":", events);
     }
     onEventClick?.(date, events);
-  };
-
-  const navigateToToday = () => {
-    setCurrentViewMonth(getCurrentMonth());
-  };
-
-  const handleShareSuccess = () => {
-    // Refresh calendar data to show updated public status
-    if (userId) {
-      getUserDefaultCalendar(userId).then(setUserCalendar).catch(console.error);
-    }
   };
 
   // Fetch user's default calendar
@@ -103,6 +97,14 @@ export default function Calendar({
     }
   }, [userCalendar]);
 
+  // Update event count for current month
+  useEffect(() => {
+    if (!onMonthEventCountChange) return;
+    const monthStr = currentViewMonth.toISOString().slice(0, 7); // 'YYYY-MM'
+    const count = events.filter(e => e.date.startsWith(monthStr)).length;
+    onMonthEventCountChange(count);
+  }, [events, currentViewMonth, onMonthEventCountChange]);
+
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === "Escape" && selectedDate) {
@@ -115,32 +117,28 @@ export default function Calendar({
 
   return (
     <div className="w-full">
-      {/* Calendar Controls */}
-      <CalendarControls
-        currentViewMonth={currentViewMonth}
-        onMonthChange={setCurrentViewMonth}
-        onYearChange={setCurrentViewMonth}
-        onTodayClick={navigateToToday}
-        eventCount={events.length}
-        selectedCalendar={selectedCalendar}
-        onCalendarChange={setSelectedCalendar}
-        selectedFilter={selectedFilter}
-        onFilterChange={setSelectedFilter}
-        calendarId={userCalendar?.id}
-        isPublic={userCalendar?.is_public}
-        onShareSuccess={handleShareSuccess}
-      />
-
       {/* Calendar Container */}
-      <div ref={containerRef} className="space-y-8">
-        {months.map((month) => (
-          <CalendarMonth
-            key={month.toISOString()}
-            date={month}
-            onDayClick={handleDayClick}
-            events={events}
-          />
-        ))}
+      <div ref={containerRef} className="space-y-8 relative">
+        {/* Subtle background gradient for feed feel */}
+        <div className="absolute inset-0 bg-gradient-to-br from-purple-50/20 via-transparent to-blue-50/20 rounded-2xl -z-10" />
+        
+        {/* Calendar Grid with enhanced spacing */}
+        <div className="relative space-y-16">
+          {months.map((month, index) => (
+            <div key={month.toISOString()} className="relative">
+              {/* Subtle divider between months (except first) */}
+              {index > 0 && (
+                <div className="absolute -top-8 left-0 right-0 h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent" />
+              )}
+              
+              <CalendarMonth
+                date={month}
+                onDayClick={handleDayClick}
+                events={events}
+              />
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Event Modal */}
