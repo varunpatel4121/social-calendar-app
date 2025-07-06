@@ -24,3 +24,32 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Custom animations for Debrief brand */
+@keyframes shimmer {
+  0% {
+    background-position: -200% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-2px);
+  }
+}
+
+/* Apply animations to Debrief brand */
+.debrief-brand {
+  animation: float 4s ease-in-out infinite;
+}
+
+.debrief-brand .main-text {
+  background-size: 200% auto;
+  animation: shimmer 4s linear infinite;
+}

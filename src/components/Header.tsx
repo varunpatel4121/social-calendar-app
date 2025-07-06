@@ -124,8 +124,11 @@ export default function Header({
     <header className="bg-gradient-to-r from-purple-600 to-blue-500 shadow-lg sticky top-0 z-50 relative">
       {/* Debrief Brand Centerpiece - Floating over both header bars */}
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
-        <h1 className="text-3xl md:text-4xl lg:text-5xl font-dancing-script font-semibold tracking-wider drop-shadow-[0_0_30px_rgba(255,165,0,0.6)] bg-gradient-to-r from-orange-300 via-orange-400 via-yellow-400 to-orange-500 bg-clip-text text-transparent transform -translate-y-2">
-          Debrief
+        <h1 className="text-4xl md:text-5xl lg:text-6xl font-dancing-script font-bold tracking-wider relative group debrief-brand">
+          {/* Main text with enhanced gradient */}
+          <span className="main-text bg-gradient-to-r from-orange-400 via-yellow-400 via-pink-400 via-purple-400 to-orange-400 bg-clip-text text-transparent">
+            Debrief
+          </span>
         </h1>
       </div>
 
