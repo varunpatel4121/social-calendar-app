@@ -283,7 +283,6 @@ export default function Header({
               <div className="mb-4">
                 <h3 className="text-lg font-bold text-white">{personalizedLabel}</h3>
                 <p className="text-sm text-purple-100">Past Moments, Future Memories</p>
-                <span className="block text-xs text-purple-100 mt-1">{getEventCountText()} this month</span>
               </div>
             )}
 

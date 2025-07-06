@@ -9,30 +9,17 @@ interface CalendarMonthProps {
   date: Date;
   onDayClick: (date: Date, events: CalendarEvent[]) => void;
   events?: CalendarEvent[];
-  eventCount?: number;
 }
 
 export default function CalendarMonth({
   date,
   onDayClick,
   events,
-  eventCount = 0,
 }: CalendarMonthProps) {
   const days = getDaysInMonth(date);
 
-  const getEventCountText = () => {
-    return eventCount === 1 ? "1 event" : `${eventCount} events`;
-  };
-
   return (
     <div className="mb-12">
-      {/* Event Count Display - Below header bar, above month title */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-2">
-        <div className="text-sm text-gray-600 font-medium">
-          {getEventCountText()} this month
-        </div>
-      </div>
-
       {/* Month Title - Full-width section header */}
       <div className="sticky top-20 z-40 bg-gray-50/95 backdrop-blur-sm border-b border-gray-200 mb-6 py-4">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

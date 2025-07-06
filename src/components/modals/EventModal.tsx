@@ -2,6 +2,7 @@
 
 import { format } from "date-fns";
 import { CalendarEvent } from "@/types/calendar";
+import Image from "next/image";
 
 interface EventModalProps {
   isOpen: boolean;
@@ -62,9 +63,11 @@ export default function EventModal({
                 <div key={event.id} className="bg-gray-50 rounded-2xl p-4">
                   {/* Event Image */}
                   <div className="relative mb-4">
-                    <img
+                    <Image
                       src={event.imageUrl}
                       alt={event.title}
+                      width={400}
+                      height={192}
                       className="w-full h-48 rounded-xl object-cover"
                       onError={(e) => {
                         // Fallback to a placeholder if image fails to load

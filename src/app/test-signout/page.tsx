@@ -3,7 +3,7 @@ import { useAuth } from "@/lib/authHelpers";
 import SignOutButton from "@/components/auth/SignOutButton";
 
 export default function TestSignOutPage() {
-  const { user, isLoading } = useAuth();
+  const { user, isLoading, signOut } = useAuth();
 
   if (isLoading) {
     return (
@@ -32,7 +32,6 @@ export default function TestSignOutPage() {
           <button
             onClick={() => {
               console.log("🔍 Test: Manual sign out test");
-              const { signOut } = useAuth();
               signOut().then(() => {
                 console.log("🔍 Test: Manual sign out successful");
               }).catch((error) => {
