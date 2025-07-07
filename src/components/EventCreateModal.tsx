@@ -109,6 +109,8 @@ export default function EventCreateModal({
       return;
     }
 
+    // All domains are now allowed, so we skip domain validation
+
     setImageValidation({
       isValidating: true,
       isValid: null,
@@ -116,18 +118,32 @@ export default function EventCreateModal({
     });
 
     try {
-      // Test if image loads
-      const response = await fetch(url, { method: 'HEAD' });
+      // Create a test image element to validate the URL
+      const img = new Image();
       
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
+      // Set up promise-based validation
+      const validationPromise = new Promise<boolean>((resolve, reject) => {
+        img.onload = () => {
+          // Additional check: verify the image actually loaded with dimensions
+          if (img.width > 0 && img.height > 0) {
+            resolve(true);
+          } else {
+            reject(new Error('Image loaded but has no dimensions'));
+          }
+        };
+        img.onerror = () => reject(new Error('Image failed to load'));
+        
+        // Set a timeout to prevent hanging
+        setTimeout(() => reject(new Error('Image validation timed out')), 10000);
+      });
 
-      const contentType = response.headers.get('content-type');
-      if (!contentType || !contentType.startsWith('image/')) {
-        throw new Error('URL does not point to an image');
-      }
+      // Start loading the image
+      img.src = url;
+      
+      // Wait for validation result
+      await validationPromise;
 
+      console.log('Image validation successful:', url);
       setImageValidation({
         isValidating: false,
         isValid: true,
@@ -359,7 +375,7 @@ export default function EventCreateModal({
                 value={formData.title}
                 onChange={handleInputChange}
                 required
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white hover:border-gray-400"
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white hover:border-gray-400 text-gray-900 placeholder-gray-500"
                 placeholder="Enter event title..."
               />
             </div>
@@ -380,7 +396,7 @@ export default function EventCreateModal({
                 onChange={handleInputChange}
                 required
                 min={format(new Date(), "yyyy-MM-dd")}
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white hover:border-gray-400"
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white hover:border-gray-400 text-gray-900"
               />
             </div>
 
@@ -399,7 +415,7 @@ export default function EventCreateModal({
                   name="imageUrl"
                   value={formData.imageUrl}
                   onChange={handleInputChange}
-                  className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white hover:border-gray-400 pr-10 ${
+                  className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white hover:border-gray-400 pr-10 text-gray-900 placeholder-gray-500 ${
                     imageValidation.isValid === true
                       ? 'border-green-300 focus:ring-green-500'
                       : imageValidation.isValid === false
@@ -438,6 +454,7 @@ export default function EventCreateModal({
                   {imageValidation.isValid === false && (
                     <p className="text-red-600">✗ {imageValidation.error}</p>
                   )}
+
                 </div>
               )}
               
@@ -460,7 +477,7 @@ export default function EventCreateModal({
                 value={formData.description}
                 onChange={handleInputChange}
                 rows={3}
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white hover:border-gray-400 resize-none"
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white hover:border-gray-400 resize-none text-gray-900 placeholder-gray-500"
                 placeholder="Tell us about your event..."
               />
               <p className="text-xs text-gray-500">
@@ -484,6 +501,7 @@ export default function EventCreateModal({
                   isLoadingCalendar || 
                   !formData.title.trim() || 
                   !calendarId ||
+                  (formData.imageUrl.trim() !== "" && imageValidation.isValidating) ||
                   (formData.imageUrl.trim() !== "" && imageValidation.isValid === false)
                 }
                 className="flex-1 px-4 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:from-blue-700 hover:to-purple-700 focus:ring-4 focus:ring-blue-500/30 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
