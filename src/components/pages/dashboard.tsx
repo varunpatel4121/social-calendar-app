@@ -2,10 +2,10 @@
 import { useAuth } from "@/lib/authHelpers";
 import SignInButton from "@/components/auth/SignInButton";
 import Header from "@/components/Header";
-import Calendar from "@/components/calendar/Calendar";
+import Calendar, { CalendarRef } from "@/components/calendar/Calendar";
 import CalendarSettingsModal from "@/components/modals/CalendarSettingsModal";
 import { User } from "@supabase/supabase-js";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { getCurrentMonth } from "@/lib/utils/date";
 import { getUserDefaultCalendar } from "@/lib/getUserDefaultCalendar";
 import { Calendar as CalendarType } from "@/types/calendar";
@@ -18,6 +18,8 @@ export default function DashboardPage() {
   const [eventCount, setEventCount] = useState(0);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [userCalendar, setUserCalendar] = useState<CalendarType | null>(null);
+  
+  const calendarRef = useRef<CalendarRef>(null);
 
   // Fetch user's default calendar
   useEffect(() => {
@@ -44,7 +46,15 @@ export default function DashboardPage() {
   };
 
   const navigateToToday = () => {
-    setCurrentViewMonth(getCurrentMonth());
+    const today = getCurrentMonth();
+    setCurrentViewMonth(today);
+    
+    // Use requestAnimationFrame to ensure state update has propagated
+    requestAnimationFrame(() => {
+      if (calendarRef.current) {
+        calendarRef.current.scrollToMonth(today);
+      }
+    });
   };
 
   const handleCalendarUpdate = () => {
@@ -78,8 +88,9 @@ export default function DashboardPage() {
         eventCount={eventCount}
         onSettingsClick={() => setIsSettingsOpen(true)}
       />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
         <Calendar 
+          ref={calendarRef}
           userId={user.id} 
           personalizedLabel={getPersonalizedLabel(user)}
           currentViewMonth={currentViewMonth}

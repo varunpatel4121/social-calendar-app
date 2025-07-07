@@ -10,8 +10,8 @@ export async function GET(
     
     if (!supabaseAdmin) {
       return NextResponse.json(
-        { error: 'Admin client not available' },
-        { status: 500 }
+        { error: 'Admin client not available - service role key missing' },
+        { status: 503 }
       )
     }
     

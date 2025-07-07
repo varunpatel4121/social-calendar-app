@@ -3,7 +3,6 @@
 import { CalendarEvent } from "@/types/calendar";
 import { getDaysInMonth } from "@/lib/utils/date";
 import CalendarDay from "@/components/calendar/CalendarDay";
-import { format } from "date-fns";
 
 interface CalendarMonthProps {
   date: Date;
@@ -20,15 +19,6 @@ export default function CalendarMonth({
 
   return (
     <div className="mb-12">
-      {/* Month Title - Full-width section header */}
-      <div className="sticky top-20 z-40 bg-gray-50/95 backdrop-blur-sm border-b border-gray-200 mb-6 py-4">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-2xl font-bold text-gray-900">
-            {format(date, "MMMM yyyy")}
-          </h2>
-        </div>
-      </div>
-
       {/* Calendar Container with subtle shadow */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
         {/* Day Headers */}

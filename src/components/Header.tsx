@@ -372,86 +372,84 @@ export default function Header({
         )}
 
         {/* Desktop Navigation Controls - Below header */}
-        <div className="hidden md:flex items-center justify-between py-3">
-          {/* Left - Event Count and Status */}
-          <div className="flex items-center space-x-2">
-            <span className="text-sm text-purple-100">{getEventCountText()} this month</span>
-            {isPublic && (
-              <>
-                <span className="text-purple-200">•</span>
-                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-white/20 text-white border border-white/30">
-                  <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z" clipRule="evenodd" />
+        {currentViewMonth && (
+          <div className="hidden md:flex items-center justify-between py-2">
+            {/* Left - Event Count and Status */}
+            <div className="flex items-center space-x-2">
+              <span className="text-sm text-purple-100">{getEventCountText()} this month</span>
+              {isPublic && (
+                <>
+                  <span className="text-purple-200">•</span>
+                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-white/20 text-white border border-white/30">
+                    <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z" clipRule="evenodd" />
+                    </svg>
+                    Public
+                  </span>
+                </>
+              )}
+            </div>
+
+            {/* Right - Navigation Controls */}
+            <div className="flex items-center space-x-2">
+              {/* Navigation Controls */}
+              <div className="flex items-center space-x-1">
+                <button
+                  onClick={() => navigateToYear("prev")}
+                  className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  title="Previous year"
+                  disabled={currentViewMonth && isPastMonth(subMonths(currentViewMonth, 12))}
+                >
+                  <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
                   </svg>
-                  Public
-                </span>
-              </>
-            )}
-          </div>
+                </button>
+                <button
+                  onClick={() => navigateToMonth("prev")}
+                  className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  title="Previous month"
+                  disabled={currentViewMonth && isPastMonth(subMonths(currentViewMonth, 1))}
+                >
+                  <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  </svg>
+                </button>
+                <button
+                  onClick={() => navigateToMonth("next")}
+                  className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
+                  title="Next month"
+                >
+                  <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+                <button
+                  onClick={onTodayClick}
+                  className="px-3 py-1.5 bg-white text-purple-600 rounded-lg hover:bg-gray-50 transition-colors text-xs font-medium"
+                >
+                  Today
+                </button>
+              </div>
 
-          {/* Right - Navigation Controls */}
-          <div className="flex items-center space-x-2">
-            {currentViewMonth && (
-              <>
-                {/* Navigation Controls */}
-                <div className="flex items-center space-x-1">
+              {/* Filter Pills */}
+              <div className="flex items-center space-x-1 ml-4">
+                {filters.map((filter) => (
                   <button
-                    onClick={() => navigateToYear("prev")}
-                    className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                    title="Previous year"
-                    disabled={currentViewMonth && isPastMonth(subMonths(currentViewMonth, 12))}
+                    key={filter.id}
+                    onClick={() => onFilterChange?.(filter.id)}
+                    className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-200 border ${
+                      selectedFilter === filter.id
+                        ? "bg-white text-purple-600 border-white shadow-sm"
+                        : "bg-transparent text-white border-white/30 hover:bg-white/20 hover:scale-105"
+                    }`}
                   >
-                    <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
-                    </svg>
+                    {filter.name}
                   </button>
-                  <button
-                    onClick={() => navigateToMonth("prev")}
-                    className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                    title="Previous month"
-                    disabled={currentViewMonth && isPastMonth(subMonths(currentViewMonth, 1))}
-                  >
-                    <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                    </svg>
-                  </button>
-                  <button
-                    onClick={() => navigateToMonth("next")}
-                    className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
-                    title="Next month"
-                  >
-                    <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
-                  </button>
-                  <button
-                    onClick={onTodayClick}
-                    className="px-3 py-1.5 bg-white text-purple-600 rounded-lg hover:bg-gray-50 transition-colors text-xs font-medium"
-                  >
-                    Today
-                  </button>
-                </div>
-
-                {/* Filter Pills */}
-                <div className="flex items-center space-x-1 ml-4">
-                  {filters.map((filter) => (
-                    <button
-                      key={filter.id}
-                      onClick={() => onFilterChange?.(filter.id)}
-                      className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-200 border ${
-                        selectedFilter === filter.id
-                          ? "bg-white text-purple-600 border-white shadow-sm"
-                          : "bg-transparent text-white border-white/30 hover:bg-white/20 hover:scale-105"
-                      }`}
-                    >
-                      {filter.name}
-                    </button>
-                  ))}
-                </div>
-              </>
-            )}
+                ))}
+              </div>
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </header>
   );
