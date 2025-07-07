@@ -1,5 +1,5 @@
 import { supabase } from './supabaseClient'
-import { generateSlugFromName, generateUniqueSlug } from './utils/slug'
+import { generateSlugFromName } from './utils/slug'
 import { Calendar } from '@/types/calendar'
 
 export type UserCalendar = Calendar;
@@ -9,23 +9,26 @@ export async function getUserDefaultCalendar(userId: string): Promise<UserCalend
     throw new Error('User ID is required')
   }
 
-  // Try to find an existing default calendar
-  const { data: existingCalendar, error: fetchError } = await supabase
+  // First, try to find ALL existing default calendars for this user
+  const { data: existingCalendars, error: fetchError } = await supabase
     .from('calendars')
     .select('*')
     .eq('owner_id', userId)
     .eq('is_default', true)
-    .maybeSingle()
+    .order('created_at', { ascending: true })
 
-  // If there is a real error (not just 'not found'), throw
-  if (fetchError && fetchError.code !== 'PGRST116' && fetchError.code !== 'PGRST123') {
-    // PGRST116 and PGRST123 are 'no rows found' errors
-    console.error('Error fetching default calendar:', fetchError)
-    throw new Error('Failed to fetch default calendar')
+  // If there is a real error, throw
+  if (fetchError) {
+    console.error('Error fetching default calendars:', fetchError)
+    throw new Error('Failed to fetch default calendars')
   }
 
-  if (existingCalendar) {
-    return existingCalendar
+  // If we have existing default calendars, return the oldest one
+  if (existingCalendars && existingCalendars.length > 0) {
+    if (existingCalendars.length > 1) {
+      console.warn(`Found ${existingCalendars.length} default calendars for user ${userId}, returning oldest`)
+    }
+    return existingCalendars[0] // Already sorted by created_at ascending
   }
 
   // Get user info to generate slug
@@ -40,17 +43,11 @@ export async function getUserDefaultCalendar(userId: string): Promise<UserCalend
     console.warn('Could not get user info for slug generation:', error)
   }
 
-  // Generate unique slug (will handle 406 errors gracefully)
-  let uniqueSlug = 'my-calendar'
-  try {
+  // Use a CONSISTENT slug for default calendars (no uniqueness check needed)
     const baseSlug = generateSlugFromName(userName, 'My Calendar')
-    uniqueSlug = await generateUniqueSlug(baseSlug)
-  } catch (error) {
-    console.warn('Could not generate unique slug, using fallback:', error)
-    uniqueSlug = `my-calendar-${Date.now()}`
-  }
+  const defaultSlug = baseSlug || 'my-calendar'
 
-  // No default calendar exists, create one
+  // Create the default calendar with a simple slug
   const { data: newCalendar, error: createError } = await supabase
     .from('calendars')
     .insert({
@@ -60,13 +57,35 @@ export async function getUserDefaultCalendar(userId: string): Promise<UserCalend
       is_default: true,
       is_public: false,
       public_id: crypto.randomUUID(),
-      slug: uniqueSlug
+      slug: defaultSlug
     })
     .select()
     .single()
 
-  if (createError || !newCalendar) {
+  if (createError) {
+    // If creation fails due to slug uniqueness constraint, try to fetch existing calendar
+    if (createError.code === '23505' && createError.message.includes('slug')) {
+      console.log('Calendar creation failed due to slug constraint, fetching existing calendar...')
+      
+      const { data: retryCalendar, error: retryError } = await supabase
+        .from('calendars')
+        .select('*')
+        .eq('owner_id', userId)
+        .eq('is_default', true)
+        .order('created_at', { ascending: true })
+        .limit(1)
+        .single()
+
+      if (retryCalendar) {
+        return retryCalendar
+      }
+    }
+    
     console.error('Error creating default calendar:', createError)
+    throw new Error('Failed to create default calendar')
+  }
+
+  if (!newCalendar) {
     throw new Error('Failed to create default calendar')
   }
 
