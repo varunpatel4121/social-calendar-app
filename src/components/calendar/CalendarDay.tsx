@@ -72,28 +72,42 @@ export default function CalendarDay({
           </div>
         )}
 
-        {/* Event Day - Image Circle with Date Overlay */}
-        {hasEvents && eventImage ? (
+        {/* Event Day - With or Without Image */}
+        {hasEvents ? (
           <div className="w-full h-full rounded-2xl overflow-hidden shadow-lg ring-1 ring-gray-200/50 group-hover:shadow-xl group-hover:scale-105 transition-all duration-300">
-            {/* Event Image Background */}
+            {/* Event Background - Image or Default Gradient */}
             <div className="relative w-full h-full">
-              <SmartImage
-                src={eventImage}
-                alt={`Event on ${day.dayNumber}`}
-                width={200}
-                height={200}
-                className="w-full h-full object-cover transition-all duration-300 group-hover:scale-105 group-hover:brightness-75"
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement;
-                  target.style.display = "none";
-                  // Fallback to gradient background if image fails
-                  const parent = target.parentElement;
-                  if (parent) {
-                    parent.className =
-                      "relative w-full h-full bg-gradient-to-br from-purple-400 to-pink-500";
-                  }
-                }}
-              />
+              {eventImage ? (
+                <SmartImage
+                  src={eventImage}
+                  alt={`Event on ${day.dayNumber}`}
+                  width={200}
+                  height={200}
+                  className="w-full h-full object-cover transition-all duration-300 group-hover:scale-105 group-hover:brightness-75"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.style.display = "none";
+                    // Fallback to gradient background if image fails
+                    const parent = target.parentElement;
+                    if (parent) {
+                      parent.className =
+                        "relative w-full h-full bg-gradient-to-br from-purple-400 to-pink-500";
+                    }
+                  }}
+                />
+              ) : (
+                /* Default Event Background - No Image */
+                <div className="w-full h-full bg-gradient-to-br from-purple-400 via-pink-500 to-orange-500 transition-all duration-300 group-hover:scale-105 group-hover:brightness-75">
+                  {/* Event Icon */}
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="text-white/80">
+                      <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Date Number Overlay */}
               <div className="absolute inset-0 flex items-center justify-center">
