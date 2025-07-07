@@ -35,6 +35,15 @@ export default function EventCreateModal({
   const [toast, setToast] = useState<ToastMessage | null>(null);
   const [calendarId, setCalendarId] = useState<string | null>(null);
   const [isLoadingCalendar, setIsLoadingCalendar] = useState(false);
+  const [imageValidation, setImageValidation] = useState<{
+    isValidating: boolean;
+    isValid: boolean | null;
+    error: string | null;
+  }>({
+    isValidating: false,
+    isValid: null,
+    error: null,
+  });
 
   // Fetch user's default calendar when modal opens
   useEffect(() => {
@@ -69,8 +78,70 @@ export default function EventCreateModal({
       });
       setToast(null);
       setCalendarId(null);
+      setImageValidation({
+        isValidating: false,
+        isValid: null,
+        error: null,
+      });
     }
   }, [isOpen, selectedDate]);
+
+  // Validate image URL
+  const validateImageUrl = async (url: string) => {
+    if (!url.trim()) {
+      setImageValidation({
+        isValidating: false,
+        isValid: null,
+        error: null,
+      });
+      return;
+    }
+
+    // Basic URL validation
+    try {
+      new URL(url);
+    } catch {
+      setImageValidation({
+        isValidating: false,
+        isValid: false,
+        error: "Invalid URL format",
+      });
+      return;
+    }
+
+    setImageValidation({
+      isValidating: true,
+      isValid: null,
+      error: null,
+    });
+
+    try {
+      // Test if image loads
+      const response = await fetch(url, { method: 'HEAD' });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.startsWith('image/')) {
+        throw new Error('URL does not point to an image');
+      }
+
+      setImageValidation({
+        isValidating: false,
+        isValid: true,
+        error: null,
+      });
+    } catch (error) {
+      console.error('Image validation error:', error);
+      setImageValidation({
+        isValidating: false,
+        isValid: false,
+        error: error instanceof Error ? error.message : 'Failed to load image',
+      });
+    }
+  };
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
@@ -80,6 +151,16 @@ export default function EventCreateModal({
       ...prev,
       [name]: value,
     }));
+
+    // Validate image URL when it changes
+    if (name === 'imageUrl') {
+      // Debounce validation to avoid too many requests
+      const timeoutId = setTimeout(() => {
+        validateImageUrl(value);
+      }, 500);
+
+      return () => clearTimeout(timeoutId);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -92,6 +173,25 @@ export default function EventCreateModal({
         message: "No calendar found for this user.",
       });
       return;
+    }
+
+    // Validate image URL if provided
+    if (formData.imageUrl.trim()) {
+      if (imageValidation.isValidating) {
+        setToast({
+          type: "error",
+          message: "Please wait for image validation to complete.",
+        });
+        return;
+      }
+
+      if (imageValidation.isValid === false) {
+        setToast({
+          type: "error",
+          message: `Image validation failed: ${imageValidation.error}`,
+        });
+        return;
+      }
     }
     
     setIsSubmitting(true);
@@ -292,15 +392,55 @@ export default function EventCreateModal({
               >
                 Image URL
               </label>
-              <input
-                type="url"
-                id="imageUrl"
-                name="imageUrl"
-                value={formData.imageUrl}
-                onChange={handleInputChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white hover:border-gray-400"
-                placeholder="https://example.com/image.jpg"
-              />
+              <div className="relative">
+                <input
+                  type="url"
+                  id="imageUrl"
+                  name="imageUrl"
+                  value={formData.imageUrl}
+                  onChange={handleInputChange}
+                  className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white hover:border-gray-400 pr-10 ${
+                    imageValidation.isValid === true
+                      ? 'border-green-300 focus:ring-green-500'
+                      : imageValidation.isValid === false
+                      ? 'border-red-300 focus:ring-red-500'
+                      : 'border-gray-300'
+                  }`}
+                  placeholder="https://example.com/image.jpg"
+                />
+                {/* Validation Status Icon */}
+                {formData.imageUrl && (
+                  <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                    {imageValidation.isValidating ? (
+                      <div className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                    ) : imageValidation.isValid === true ? (
+                      <svg className="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
+                    ) : imageValidation.isValid === false ? (
+                      <svg className="w-5 h-5 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                      </svg>
+                    ) : null}
+                  </div>
+                )}
+              </div>
+              
+              {/* Validation Messages */}
+              {formData.imageUrl && (
+                <div className="text-xs">
+                  {imageValidation.isValidating && (
+                    <p className="text-blue-600">Validating image...</p>
+                  )}
+                  {imageValidation.isValid === true && (
+                    <p className="text-green-600">✓ Image is valid and will work!</p>
+                  )}
+                  {imageValidation.isValid === false && (
+                    <p className="text-red-600">✗ {imageValidation.error}</p>
+                  )}
+                </div>
+              )}
+              
               <p className="text-xs text-gray-500">
                 Optional: Add a beautiful image for your event
               </p>
@@ -339,7 +479,13 @@ export default function EventCreateModal({
               </button>
               <button
                 type="submit"
-                disabled={isSubmitting || isLoadingCalendar || !formData.title.trim() || !calendarId}
+                disabled={
+                  isSubmitting || 
+                  isLoadingCalendar || 
+                  !formData.title.trim() || 
+                  !calendarId ||
+                  (formData.imageUrl.trim() !== "" && imageValidation.isValid === false)
+                }
                 className="flex-1 px-4 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:from-blue-700 hover:to-purple-700 focus:ring-4 focus:ring-blue-500/30 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
               >
                 {isSubmitting ? (
