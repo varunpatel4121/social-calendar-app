@@ -1,5 +1,4 @@
 import { supabase } from './supabaseClient'
-import { generateSlugFromName } from './utils/slug'
 import { Calendar } from '@/types/calendar'
 
 export type UserCalendar = Calendar;
@@ -58,17 +57,7 @@ async function createDefaultCalendar(userId: string): Promise<UserCalendar> {
     return existingCalendars[0] // Already sorted by created_at ascending
   }
 
-  // Get user info to generate slug
-  let userName = 'user'
-  try {
-    const { data: { user }, error } = await supabase.auth.getUser()
-    if (!error && user) {
-      const metadata = user.user_metadata || {}
-      userName = metadata.name || metadata.first_name || user.email?.split('@')[0] || 'user'
-    }
-  } catch (error) {
-    console.warn('Could not get user info for slug generation:', error)
-  }
+  // Note: User info is no longer needed since we don't generate slugs for default calendars
 
   console.log(`Creating new default calendar without slug`)
 
@@ -91,7 +80,7 @@ async function createDefaultCalendar(userId: string): Promise<UserCalendar> {
     console.error('Error creating default calendar:', createError)
     
     // If creation fails, try to fetch any calendar that might have been created by another process
-    const { data: retryCalendar, error: retryError } = await supabase
+    const { data: retryCalendar } = await supabase
       .from('calendars')
       .select('*')
       .eq('owner_id', userId)
