@@ -3,7 +3,7 @@
 import { CalendarDay as CalendarDayType } from "@/lib/utils/date";
 import { CalendarEvent } from "@/types/calendar";
 import { useState } from "react";
-import Image from "next/image";
+import SmartImage from "@/components/SmartImage";
 import EventCreateModal from "@/components/EventCreateModal";
 import { useAuth } from "@/lib/authHelpers";
 
@@ -77,7 +77,7 @@ export default function CalendarDay({
           <div className="w-full h-full rounded-2xl overflow-hidden shadow-lg ring-1 ring-gray-200/50 group-hover:shadow-xl group-hover:scale-105 transition-all duration-300">
             {/* Event Image Background */}
             <div className="relative w-full h-full">
-              <Image
+              <SmartImage
                 src={eventImage}
                 alt={`Event on ${day.dayNumber}`}
                 width={200}
