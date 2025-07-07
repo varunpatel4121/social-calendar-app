@@ -4,6 +4,7 @@ import SignInButton from "@/components/auth/SignInButton";
 import Header from "@/components/Header";
 import Calendar, { CalendarRef } from "@/components/calendar/Calendar";
 import CalendarSettingsModal from "@/components/modals/CalendarSettingsModal";
+import EventCreateButton from "@/components/EventCreateButton";
 import { User } from "@supabase/supabase-js";
 import { useState, useEffect, useRef } from "react";
 import { getCurrentMonth } from "@/lib/utils/date";
@@ -99,6 +100,9 @@ export default function DashboardPage() {
           onMonthEventCountChange={setEventCount}
         />
       </div>
+
+      {/* Floating Create Event Button */}
+      <EventCreateButton />
 
       {/* Calendar Settings Modal */}
       <CalendarSettingsModal
