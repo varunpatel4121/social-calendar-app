@@ -70,14 +70,9 @@ async function createDefaultCalendar(userId: string): Promise<UserCalendar> {
     console.warn('Could not get user info for slug generation:', error)
   }
 
-  // Generate a unique slug with timestamp to avoid conflicts
-  const timestamp = Date.now()
-  const baseSlug = generateSlugFromName(userName, 'My Calendar')
-  const defaultSlug = `${baseSlug}-${timestamp}`
+  console.log(`Creating new default calendar without slug`)
 
-  console.log(`Creating new default calendar with slug: ${defaultSlug}`)
-
-  // Create the default calendar
+  // Create the default calendar without a slug (will be generated when made public)
   const { data: newCalendar, error: createError } = await supabase
     .from('calendars')
     .insert({
@@ -87,7 +82,7 @@ async function createDefaultCalendar(userId: string): Promise<UserCalendar> {
       is_default: true,
       is_public: false,
       public_id: crypto.randomUUID(),
-      slug: defaultSlug
+      slug: null // No slug until user decides to share
     })
     .select()
     .single()
