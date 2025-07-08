@@ -40,6 +40,7 @@ export interface PublicEvent {
   start_time: string;
   end_time?: string;
   location?: string;
+  image_url?: string;
   color?: string;
   created_at: string;
 }

@@ -219,7 +219,7 @@ export default function EventCreateModal({
           {
             title: formData.title.trim(),
             description: formData.description.trim(),
-            location: formData.imageUrl.trim() || null,
+            image_url: formData.imageUrl.trim() || null,
             start_time: new Date(formData.date + "T00:00:00Z").toISOString(),
             end_time: new Date(formData.date + "T23:59:59Z").toISOString(),
             created_by: userId,
