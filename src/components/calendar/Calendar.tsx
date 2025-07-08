@@ -174,7 +174,7 @@ const Calendar = forwardRef<CalendarRef, CalendarProps>(({
           id: String(event.id),
           title: String(event.title),
           description: String(event.description || ""),
-          imageUrl: event.location ? String(event.location) : "", // Using location field for image URL
+          imageUrl: event.image_url ? String(event.image_url) : "",
           date: new Date(String(event.start_time)).toISOString().split("T")[0], // Convert timestamp to date string
           color: event.color ? String(event.color) : undefined,
         })) || [];

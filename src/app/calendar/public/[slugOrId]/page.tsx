@@ -27,7 +27,7 @@ export default async function PublicCalendarPage({ params }: PublicCalendarPageP
     id: event.id,
     title: event.title,
     description: event.description || '',
-    imageUrl: event.location || '', // Using location field for image URL
+    imageUrl: event.image_url || '',
     date: new Date(event.start_time).toISOString().split('T')[0], // Convert timestamp to date string
     color: event.color || undefined,
   }))
